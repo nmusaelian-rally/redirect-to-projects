@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Url redirect</title>
+
+    <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.0/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){this.getProjects()},getProjects:function(){var projects=Ext.create("Rally.data.wsapi.Store",{model:"Project",fetch:["ObjectID","Children","Parent","Name"],limit:1/0,compact:!1,context:{workspace:this.getContext().getWorkspace()._ref,project:null}});projects.load().then({success:this.loadChildren,scope:this}).then({success:function(results){var myProjects=[];_.each(results,function(result){_.each(result,function(project){myProjects.push({ref:project.data._ref,id:project.data.ObjectID,name:project.data.Name,parent:project.data.Parent&&project.data.Parent._refObjectName||"None",childrenCount:project.data.Children.Count})})}),this.redirect(myProjects)},failure:function(error){console.log("oh noes!",error)},scope:this})},loadChildren:function(projects){var promises=[];return _.each(projects,function(project){var children=project.get("Children");children.Count>0&&(children.store=project.getCollection("Children",{fetch:["ObjectID","Children","Parent","Name"],compact:!1}),promises.push(children.store.load()))}),Deft.Promise.all(promises)},redirect:function(projects){console.log("redirect");var page="/userstories";this.add({xtype:"container",items:_.map(projects,function(project){return{xtype:"container",html:'<a href="https://rally1.rallydev.com/#/'+project.id+"ud"+page+'" target = "_blank">'+project.name+"</a><p>"}})})}});
+
+            Rally.launchApp('CustomApp', {
+                name:"Url redirect",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        
+    </style>
+</head>
+<body>
+</body>
+</html>
